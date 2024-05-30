@@ -8,6 +8,12 @@ namespace Task.Connector
     {
         private readonly DataContext context;
 
+        private string FirstName { get; set; }
+        private string LastName { get; set; }
+        private string MiddleName { get; set; }
+        private string TelephoneNumber { get; set; }
+        private bool IsLead { get; set; }
+
         public UserManager(DataContext context)
         {
             this.context = context;
@@ -23,6 +29,50 @@ namespace Task.Connector
             if (password != null)
                 return password.Password;
             else return string.Empty;
+        }
+
+        public string? GetPropertyValue(UserToCreate userToCreate, string propertyName) => userToCreate.Properties.FirstOrDefault(x => x.Name == propertyName)?.Value;
+          
+        public void SetProperties(UserToCreate userToCreate)
+        {
+            string? firstName = GetPropertyValue(userToCreate, PropertyConstants.firstName);
+            FirstName = firstName ?? string.Empty;
+
+            string? lastName = GetPropertyValue(userToCreate, PropertyConstants.lastName);
+            LastName = lastName ?? string.Empty;
+
+            string? middleName = GetPropertyValue(userToCreate, PropertyConstants.middleName);
+            MiddleName = middleName ?? string.Empty;
+
+            string? telephoneNumber = GetPropertyValue(userToCreate, PropertyConstants.telephoneNumber);
+            TelephoneNumber = telephoneNumber ?? string.Empty;
+
+            string? isLead = GetPropertyValue(userToCreate, PropertyConstants.isLead);
+            IsLead = Convert.ToBoolean(isLead);
+        }
+
+        public void CreateUser(UserToCreate user)
+        {
+            SetProperties(user);
+
+            User newUser = new()
+            {
+                Login = user.Login,
+                FirstName = FirstName,
+                LastName = LastName,
+                MiddleName = MiddleName,
+                TelephoneNumber = TelephoneNumber,
+                IsLead = IsLead
+            };
+            context.Users.Add(newUser);
+
+            Sequrity sequrity = new()
+            {
+                UserId = user.Login,
+                Password = user.HashPassword
+            };
+            context.Passwords.Add(sequrity);
+            context.SaveChanges();
         }
 
         public IEnumerable<UserProperty> GetUserProperties(string userLogin)

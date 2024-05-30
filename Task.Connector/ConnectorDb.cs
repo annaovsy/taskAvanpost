@@ -25,8 +25,20 @@ namespace Task.Connector
         }
 
         public void CreateUser(UserToCreate user)
-        {       
-            throw new NotImplementedException();
+        {
+            Logger.Debug($"Method: CreateUser");
+            if (!IsUserExists(user.Login))
+            {
+                try
+                {
+                    userManager.CreateUser(user);
+                    Logger.Debug($"User {user.Login} created successfully");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error(ex.Message);
+                }
+            }
         }
 
         public IEnumerable<Property> GetAllProperties()
